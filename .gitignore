@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.venv/
+
+# Verilator / cocotb
+obj_dir/
+sim_build/
+results.xml
+*.vcd
+*.fst
+
+# Vivado
+*.jou
+*.log
+*.str
+.Xil/
+build/
+vivado*.backup.jou
+vivado*.backup.log
+
+# generated data
+*.mem
+*.csv
