@@ -15,8 +15,6 @@ def _rne(code, shift):
 
 class Fx:
     # A value on a wire: an integer code and the scale it is understood at.
-    __slots__ = ("code", "frac")
-
     def __init__(self, code, frac):
         self.code, self.frac = np.asarray(code, dtype=np.int64), frac
 
@@ -33,19 +31,19 @@ class Fx:
 
 class Fmt:
     # register: how many bits, and where its binary point sits.
-    def __init__(self, width, frac, name=""):
+    def __init__(self, width, frac):
         if not 1 <= width <= 31:
             # Products are held in int64, so two operands must fit in 62 bits.
             raise ValueError(f"width {width} outside 1..31")
-        self.width, self.frac, self.name = width, frac, name
+        self.width, self.frac = width, frac
         self.lo = -(1 << (width - 1))
         self.hi = (1 << (width - 1)) - 1
         self.saturations = 0
 
     @classmethod
-    def for_range(cls, width, max_abs, name=""):
+    def for_range(cls, width, max_abs):
         int_bits = 1 if max_abs <= 0 else int(np.ceil(np.log2(max_abs))) + 1
-        return cls(width, width - int_bits, name)
+        return cls(width, width - int_bits)
 
     def _clip(self, code):
         self.saturations += int(np.count_nonzero((code < self.lo) | (code > self.hi)))
@@ -58,16 +56,13 @@ class Fmt:
         scaled = np.asarray(value, dtype=float) * (2.0 ** self.frac)
         return Fx(self._clip(np.rint(scaled).astype(np.int64)), self.frac)
 
-    def __repr__(self):
-        return f"Fmt({self.name or '?'}, w={self.width}, f={self.frac})"
-
 
 class Formats:
     def __init__(self, widths, ranges):
         if isinstance(widths, int):
             widths = {v: widths for v in VARS}
         for v in VARS:
-            setattr(self, v, Fmt.for_range(widths[v], ranges[v], v))
+            setattr(self, v, Fmt.for_range(widths[v], ranges[v]))
 
     def saturations(self):
         return {v: getattr(self, v).saturations for v in VARS if getattr(self, v).saturations}
