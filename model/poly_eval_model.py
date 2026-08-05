@@ -19,35 +19,40 @@ def evaluate_horner(coeffs, x):
 
 
 def evaluate_estrin(coeffs, x):
+    # p = t0 + x2*(t1 + x2*t2). Six multiplies, arithmetic depth 3.
     a = pad_coeffs(coeffs)
 
     x2 = x * x
-    x4 = x2 * x2
 
     t0 = a[0] + a[1] * x
     t1 = a[2] + a[3] * x
     t2 = a[4] + a[5] * x
 
-    return (t0 + x2 * t1) + x4 * t2
+    return t0 + x2 * (t1 + x2 * t2)
 
 
 def evaluate_estrin_fixed(coeffs, x, coef_fmt, x_fmt, work_fmt):
+    # Mirrors rtl/poly_eval.sv one for one. Six multiplies, and exactly one
+    # cast per multiply because a DSP48 carries the full product into its own
+    # post-adder and only the sum leaves the block. Rounding anywhere else
+    # would model a circuit that isn't there.
     a = []
     for c in pad_coeffs(coeffs):
         a.append(coef_fmt.const(c))
 
     xf = x_fmt.const(x)
 
+    # pipeline stages 1-2: four products, three multiply-adds
     x2 = work_fmt.cast(xf * xf)
-    x4 = work_fmt.cast(x2 * x2)
+    t0 = work_fmt.cast(a[0] + a[1] * xf)
+    t1 = work_fmt.cast(a[2] + a[3] * xf)
+    t2 = work_fmt.cast(a[4] + a[5] * xf)
 
-    t0 = work_fmt.cast(a[0] + work_fmt.cast(a[1] * xf))
-    t1 = work_fmt.cast(a[2] + work_fmt.cast(a[3] * xf))
-    t2 = work_fmt.cast(a[4] + work_fmt.cast(a[5] * xf))
+    # stages 3-4
+    w = work_fmt.cast(t1 + x2 * t2)
 
-    left = work_fmt.cast(t0 + work_fmt.cast(x2 * t1))
-    right = work_fmt.cast(x4 * t2)
-    return work_fmt.cast(left + right)
+    # stages 5-6
+    return work_fmt.cast(t0 + x2 * w)
 
 
 def chebyshev_nodes(lo, hi, count):

@@ -21,3 +21,6 @@ vivado*.backup.log
 # generated data
 *.mem
 *.csv
+
+# Vivado project
+mixed_precision_mc/
