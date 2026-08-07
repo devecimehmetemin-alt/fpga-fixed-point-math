@@ -39,11 +39,11 @@ def mask(value, width):
 @cocotb.test()
 async def test_sweep(dut):
     xs = np.concatenate([
-        np.linspace(X_MIN, 0.0, 257),   
-        exp.expo_boundaries(FMT),           
+        np.linspace(X_MIN, 0.0, 257),
+        exp.expo_boundaries(FMT),
     ])
     stimulus = [int(c) for c in FMT.x.const(xs).code]
-    golden   = [int(c) for c in exp.evaluate_fixed(xs, FMT)]
+    golden = [int(c) for c in exp.evaluate_fixed(xs, FMT)]
 
     cocotb.start_soon(Clock(dut.clk, 10 ,"ns").start())
     dut.rst.value = 1
@@ -53,7 +53,7 @@ async def test_sweep(dut):
     await ClockCycles(dut.clk, 3)
     dut.rst.value = 0
 
-    got = [] 
+    got = []
     for i in range(len(stimulus) + LATENCY + 2):
         await RisingEdge(dut.clk)
         dut.in_valid.value = int(i<len(stimulus))

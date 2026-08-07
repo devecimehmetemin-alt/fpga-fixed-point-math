@@ -38,7 +38,7 @@ eval synth_design $args
 # skipped entirely.
 create_clock -name clk -period $period [get_ports clk]
 set io [expr {$period * 0.25}]
-set_input_delay  -clock clk $io [get_ports -filter {DIRECTION == IN && NAME != clk}]
+set_input_delay -clock clk $io [get_ports -filter {DIRECTION == IN && NAME != clk}]
 set_output_delay -clock clk $io [get_ports -filter {DIRECTION == OUT}]
 
 opt_design

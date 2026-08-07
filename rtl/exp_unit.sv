@@ -2,17 +2,17 @@ module exp_unit #(
     parameter int X_W = 18, // input x width
     parameter int X_F = 17, // input x fractional width
     parameter int L_W = 18, // log2(e) width
-    parameter int L_F = 16, 
+    parameter int L_F = 16,
     parameter int T_W = 20, // argument t width
-    parameter int T_F = 18, 
+    parameter int T_F = 18,
     parameter int C_W = 18, // coefficient width
-    parameter int C_F = 16, 
+    parameter int C_F = 16,
     parameter int W_W = 18, // significand width
-    parameter int W_F = 16, 
+    parameter int W_F = 16,
     parameter int Y_W = 32, // output y width
-    parameter int Y_F = 31, 
+    parameter int Y_F = 31,
     parameter int MAX_SHIFT = 1, // largest right shift, set by x range
-    parameter int LATENCY = 12 
+    parameter int LATENCY = 12
 )(
     input logic clk,
     input logic rst,

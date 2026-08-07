@@ -12,7 +12,7 @@ from cocotb.triggers import ClockCycles, FallingEdge, RisingEdge
 import poly_eval_model as poly
 from fixedpoint import Fmt
 
-# Widths come from the Makefile, which passes the same numbers to Verilator as -G parameters. 
+# Widths come from the Makefile, which passes the same numbers to Verilator as -G parameters.
 X_W, X_F = int(os.environ["X_W"]), int(os.environ["X_F"])
 C_W, C_F = int(os.environ["C_W"]), int(os.environ["C_F"])
 W_W, W_F = int(os.environ["W_W"]), int(os.environ["W_F"])

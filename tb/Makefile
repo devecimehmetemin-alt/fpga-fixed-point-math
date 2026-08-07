@@ -1,11 +1,15 @@
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-VERILOG_SOURCES += $(PWD)/../rtl/poly_eval.sv
-VERILOG_SOURCES += $(PWD)/../rtl/exp_unit.sv
-TOPLEVEL = exp_unit
-COCOTB_TEST_MODULES = tb_exp_unit
+# make DUT=lzc_norm  --  selects the module, its testbench and its parameters.
 DUT ?= exp_unit
+TOPLEVEL = $(DUT)
+COCOTB_TEST_MODULES = tb_$(DUT)
+
+VERILOG_SOURCES += $(PWD)/../rtl/$(DUT).sv
+ifeq ($(DUT),exp_unit)
+VERILOG_SOURCES += $(PWD)/../rtl/poly_eval.sv
+endif
 
 # Keep the C++ compile off /mnt/c -- it is roughly an order of magnitude slower.
 SIM_BUILD = $(HOME)/mc-build/$(DUT)
@@ -18,8 +22,22 @@ ifeq ($(WAVES),1)
 EXTRA_ARGS += --trace --trace-structs
 endif
 
-# Override on the command line to sweep configurations, e.g.
-#   make X_W=18 X_F=17 C_W=25 C_F=23 W_W=24 W_F=22
+# Override any of these on the command line to sweep configurations. The same
+# numbers go to Verilator as -G and to the testbench as environment variables,
+# so the formats are defined in one place only.
+
+ifeq ($(DUT),poly_eval)
+X_W ?= 18
+X_F ?= 16
+C_W ?= 18
+C_F ?= 16
+W_W ?= 18
+W_F ?= 15
+COMPILE_ARGS += -GX_W=$(X_W) -GX_F=$(X_F) -GC_W=$(C_W) -GC_F=$(C_F) -GW_W=$(W_W) -GW_F=$(W_F)
+export X_W X_F C_W C_F W_W W_F
+endif
+
+ifeq ($(DUT),exp_unit)
 X_W ?= 18
 X_F ?= 17
 L_W ?= 18
@@ -34,13 +52,18 @@ Y_W ?= 32
 Y_F ?= 31
 MAX_SHIFT ?= 1
 LATENCY ?= 12
-
 COMPILE_ARGS += -GX_W=$(X_W) -GX_F=$(X_F) -GC_W=$(C_W) -GC_F=$(C_F) -GW_W=$(W_W) -GW_F=$(W_F)
 COMPILE_ARGS += -GL_W=$(L_W) -GL_F=$(L_F) -GT_W=$(T_W) -GT_F=$(T_F) -GY_W=$(Y_W) -GY_F=$(Y_F)
 COMPILE_ARGS += -GMAX_SHIFT=$(MAX_SHIFT) -GLATENCY=$(LATENCY)
-
-# Same numbers to the testbench, so the formats are defined in one place only.
 export X_W X_F L_W L_F T_W T_F C_W C_F W_W W_F Y_W Y_F MAX_SHIFT LATENCY
+endif
+
+ifeq ($(DUT),lzc_norm)
+W ?= 12
+LATENCY ?= 2
+COMPILE_ARGS += -GW=$(W) -GLATENCY=$(LATENCY)
+export W LATENCY
+endif
 
 export PYTHONPATH := $(PWD)/../model:$(PYTHONPATH)
 
