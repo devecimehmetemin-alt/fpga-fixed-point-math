@@ -19,8 +19,18 @@ C_W, C_F = int(os.environ["C_W"]), int(os.environ["C_F"])
 W_W, W_F = int(os.environ["W_W"]), int(os.environ["W_F"])
 Y_W, Y_F = int(os.environ["Y_W"]), int(os.environ["Y_F"])
 
-MAX_SHIFT = 1
-LATENCY = 12
+LATENCY = int(os.environ["LATENCY"])
+
+FMT = exp.ExpFormats(X_W=X_W, X_F=X_F, L_W=L_W, L_F=L_F,
+                     T_W=T_W, T_F=T_F, C_W=C_W, C_F=C_F,
+                     W_W=W_W, W_F=W_F, Y_W=Y_W, Y_F=Y_F)
+
+X_MIN = -(2.0 ** (X_W - 1 - X_F))
+
+# The RTL gets MAX_SHIFT from -G; the model derives it from X_W/X_F. Two
+# computations of the same number, so check them before trusting either.
+assert FMT.max_shift == int(os.environ["MAX_SHIFT"])
+
 
 def mask(value, width):
     # A Python int to wire
@@ -28,12 +38,6 @@ def mask(value, width):
 
 @cocotb.test()
 async def test_sweep(dut):
-    FMT = exp.ExpFormats(X_W=X_W, X_F=X_F, L_W=L_W, L_F=L_F,
-                                T_W=T_W, T_F=T_F, C_W=C_W, C_F=C_F,
-                                W_W=W_W, W_F=W_F, Y_W=Y_W, Y_F=Y_F)
-
-    X_MIN = -(2.0 ** (X_W - 1 - X_F))
-
     xs = np.concatenate([
         np.linspace(X_MIN, 0.0, 257),   
         exp.expo_boundaries(FMT),           

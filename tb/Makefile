@@ -40,7 +40,7 @@ COMPILE_ARGS += -GL_W=$(L_W) -GL_F=$(L_F) -GT_W=$(T_W) -GT_F=$(T_F) -GY_W=$(Y_W)
 COMPILE_ARGS += -GMAX_SHIFT=$(MAX_SHIFT) -GLATENCY=$(LATENCY)
 
 # Same numbers to the testbench, so the formats are defined in one place only.
-export X_W X_F L_W L_F T_W T_F C_W C_F W_W W_F Y_W Y_F
+export X_W X_F L_W L_F T_W T_F C_W C_F W_W W_F Y_W Y_F MAX_SHIFT LATENCY
 
 export PYTHONPATH := $(PWD)/../model:$(PYTHONPATH)
 
