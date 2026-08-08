@@ -10,9 +10,9 @@ VERILOG_SOURCES += $(PWD)/../rtl/$(DUT).sv
 ifeq ($(DUT),exp_unit)
 VERILOG_SOURCES += $(PWD)/../rtl/poly_eval.sv
 endif
-
-# Keep the C++ compile off /mnt/c -- it is roughly an order of magnitude slower.
-SIM_BUILD = $(HOME)/mc-build/$(DUT)
+ifeq ($(DUT),ln_unit)
+VERILOG_SOURCES += $(PWD)/../rtl/lzc_norm.sv $(PWD)/../rtl/poly_eval.sv
+endif
 
 EXTRA_ARGS += --timing -Wall
 
@@ -64,6 +64,36 @@ LATENCY ?= 2
 COMPILE_ARGS += -GW=$(W) -GLATENCY=$(LATENCY)
 export W LATENCY
 endif
+
+ifeq ($(DUT),ln_unit)
+W ?= 32
+F ?= 28
+X_W ?= 18
+X_F ?= 17
+C_W ?= 18
+C_F ?= 17
+W_W ?= 18
+W_F ?= 16
+L_W ?= 18
+Y_W ?= 24
+LATENCY ?= 11
+COMPILE_ARGS += -GW=$(W) -GF=$(F) -GX_W=$(X_W) -GX_F=$(X_F) -GC_W=$(C_W) -GC_F=$(C_F)
+COMPILE_ARGS += -GW_W=$(W_W) -GW_F=$(W_F) -GL_W=$(L_W) -GY_W=$(Y_W) -GLATENCY=$(LATENCY)
+export W F X_W X_F C_W C_F W_W W_F L_W Y_W LATENCY
+# m's low W-1-X_F bits are dead by construction: z takes m[W-2 -: X_F] and the
+# leading one is implicit. Put a lint_off pragma on the declaration in the RTL
+# to drop this.
+EXTRA_ARGS += -Wno-UNUSEDSIGNAL
+endif
+
+# Keep the C++ compile off /mnt/c -- it is roughly an order of magnitude slower.
+# The directory has to carry the parameters. cocotb rebuilds when a source file
+# changes, not when a -G value does, so a shared build directory hands a sweep
+# the previous run's netlist while the model uses the new numbers -- the RTL
+# looks wrong and is not. Must come after the blocks above, since := reads
+# COMPILE_ARGS now.
+BUILD_TAG := $(shell echo "$(COMPILE_ARGS) $(EXTRA_ARGS)" | md5sum | cut -c1-8)
+SIM_BUILD = $(HOME)/mc-build/$(DUT)-$(BUILD_TAG)
 
 export PYTHONPATH := $(PWD)/../model:$(PYTHONPATH)
 
