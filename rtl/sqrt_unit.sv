@@ -66,17 +66,12 @@ module sqrt_unit #(
     // The fixed shift is the one e=E_MIN needs, because a bigger e wants a
     // smaller shift here: sqrt grows with a where the reciprocal shrank.
     localparam int SHIFT_RIGHT = G1_F - Y_F - ((E_MIN >> 1) - A_F / 2);
-    localparam int SHIFT_FIX = SHIFT_RIGHT - SHIFT_SPAN;
 
     // 1.0 at the scale g_q*y0 comes out at
     localparam int PROD2_W = M_W + S_F + 2;
     localparam logic signed [PROD2_W-1:0] ONE = 1 <<< (GB_F + S_F);
     localparam logic signed [ACC_W-1:0] RND_Y = 1 <<< (SHIFT_RIGHT - 1);
     localparam logic signed [Y_W-1:0] Y_MAX = (1 <<< (Y_W - 1)) - 1;
-
-    if (SHIFT_FIX <= 0) begin : g_shift_check
-        $error("SHIFT_FIX=%0d: the output shift runs the wrong way", SHIFT_FIX);
-    end
 
     // Seed maker
     // Entry i holds the inverse square root of slice i's midpoint

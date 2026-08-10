@@ -29,13 +29,13 @@ module poly_eval #(
     localparam int SUM2_W = PW_W + 1;
     localparam int ACC_W = (SUM1_W > SUM2_W) ? SUM1_W : SUM2_W;
 
-    localparam int SH_X2 = 2 * X_F - W_F;
-    localparam int SH_T = C_F + X_F - W_F;
-    localparam int SH_W = W_F;
+    localparam int SHIFT_X2 = 2 * X_F - W_F;
+    localparam int SHIFT_T = C_F + X_F - W_F;
+    localparam int SHIFT_W = W_F;
 
-    localparam logic signed [ACC_W-1:0] RND_X2 = ACC_W'(1) <<< (SH_X2 - 1);
-    localparam logic signed [ACC_W-1:0] RND_T = ACC_W'(1) <<< (SH_T - 1);
-    localparam logic signed [ACC_W-1:0] RND_W = ACC_W'(1) <<< (SH_W - 1);
+    localparam logic signed [ACC_W-1:0] RND_X2 = ACC_W'(1) <<< (SHIFT_X2 - 1);
+    localparam logic signed [ACC_W-1:0] RND_T = ACC_W'(1) <<< (SHIFT_T - 1);
+    localparam logic signed [ACC_W-1:0] RND_W = ACC_W'(1) <<< (SHIFT_W - 1);
 
     logic signed [X_W-1:0] x_r;
     logic signed [5:0][C_W-1:0] a_r;
@@ -69,10 +69,10 @@ module poly_eval #(
         ad4 <= a_r[4];
 
         // clock 2
-        x2 <= W_W'((ACC_W'(m_x2) + RND_X2) >>> SH_X2);
-        t0 <= W_W'((((ACC_W'(ad0) <<< X_F) + ACC_W'(m1)) + RND_T) >>> SH_T);
-        t1 <= W_W'((((ACC_W'(ad2) <<< X_F) + ACC_W'(m3)) + RND_T) >>> SH_T);
-        t2 <= W_W'((((ACC_W'(ad4) <<< X_F) + ACC_W'(m5)) + RND_T) >>> SH_T);
+        x2 <= W_W'((ACC_W'(m_x2) + RND_X2) >>> SHIFT_X2);
+        t0 <= W_W'((((ACC_W'(ad0) <<< X_F) + ACC_W'(m1)) + RND_T) >>> SHIFT_T);
+        t1 <= W_W'((((ACC_W'(ad2) <<< X_F) + ACC_W'(m3)) + RND_T) >>> SHIFT_T);
+        t2 <= W_W'((((ACC_W'(ad4) <<< X_F) + ACC_W'(m5)) + RND_T) >>> SHIFT_T);
 
         // clock 3
         m_w <= x2 * t2;
@@ -81,7 +81,7 @@ module poly_eval #(
         t0_d1 <= t0;
 
         // clock 4
-        w <= W_W'((((ACC_W'(t1_d) <<< W_F) + ACC_W'(m_w)) + RND_W) >>> SH_W);
+        w <= W_W'((((ACC_W'(t1_d) <<< W_F) + ACC_W'(m_w)) + RND_W) >>> SHIFT_W);
         x2_d2 <= x2_d1;
         t0_d2 <= t0_d1;
 
@@ -90,7 +90,7 @@ module poly_eval #(
         t0_d3 <= t0_d2;
 
         // clock 6
-        p <= W_W'((((ACC_W'(t0_d3) <<< W_F) + ACC_W'(m_p)) + RND_W) >>> SH_W);
+        p <= W_W'((((ACC_W'(t0_d3) <<< W_F) + ACC_W'(m_p)) + RND_W) >>> SHIFT_W);
 
         if (rst) v <= '0;
         else v <= {v[LATENCY-2:0], in_valid};

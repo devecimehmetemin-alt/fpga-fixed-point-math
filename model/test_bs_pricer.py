@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import norm
 
 import bs_pricer_model as bs
 from checks import Checks
@@ -12,14 +13,20 @@ check("textbook ATM put", abs(p - 5.573526022256971) < 1e-12, f"got {p}")
 
 rng = np.random.default_rng(20260729)
 n = 20000
-S = rng.uniform(10.0, 300.0, n)
-K = rng.uniform(10.0, 300.0, n)
-r = rng.uniform(-0.02, 0.10, n)
-sg = rng.uniform(0.01, 1.50, n)
-T = rng.uniform(1e-3, 5.0, n)
+S, K, r, sg, T = bs.sample(n, rng)
 
 res = np.abs(bs.parity_residual(S, K, r, sg, T))
 check("put-call parity", res.max() < 1e-9, f"max residual {res.max():.3e}")
+
+# D_CLAMP is a spec commitment the hardware will rely on, so it gets a test and
+# not just a comment. The bound that matters is error relative to K, since the
+# datapath is K-normalised.
+d1, d2, _ = bs.d1_d2(S, K, r, sg, T)
+clamped = (S * norm.cdf(np.clip(d1, -bs.D_CLAMP, bs.D_CLAMP))
+           - K * np.exp(-r * T) * norm.cdf(np.clip(d2, -bs.D_CLAMP, bs.D_CLAMP)))
+clamp_err = np.abs(clamped - bs.call(S, K, r, sg, T)) / K
+check("clamp under 1/2 lsb at Q.22", clamp_err.max() < 0.5 * 2.0 ** -22,
+      f"max {clamp_err.max():.3e}")
 
 scaled = np.abs(bs.call(S, K, r, sg, T) - K * bs.call_normalised(S / K, r, sg, T))
 check("K-homogeneity", scaled.max() < 1e-9, f"max dev {scaled.max():.3e}")

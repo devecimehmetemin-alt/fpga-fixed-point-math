@@ -26,10 +26,10 @@ module exp_unit #(
     localparam int EXPO_W = T_W - T_F;
 
     // surplus frac bits in x*LOG2E
-    localparam int SH_T = X_F + L_F - T_F;
+    localparam int SHIFT_T = X_F + L_F - T_F;
 
     // frac bits gained, signif -> y
-    localparam int SH_Y = Y_F - W_F;
+    localparam int SHIFT_Y = Y_F - W_F;
 
     // bits in shift, one mux level each
     localparam int SHIFT_STAGES = $clog2(MAX_SHIFT + 1);
@@ -38,7 +38,7 @@ module exp_unit #(
     localparam int ACC_W = X_W + L_W + 1;
 
     // round half up and +1/2
-    localparam logic signed [ACC_W-1:0] RND_BIAS = (ACC_W'(1) <<< (SH_T-1)) + (ACC_W'(1) <<< (SH_T+T_F-1));
+    localparam logic signed [ACC_W-1:0] RND_BIAS = (ACC_W'(1) <<< (SHIFT_T-1)) + (ACC_W'(1) <<< (SHIFT_T+T_F-1));
 
     // log2(e) at L_F frac bits
     localparam logic signed [L_W-1:0] LOG2E = L_W'($rtoi(1.4426950408889634 * (2.0 ** L_F) + 0.5));
@@ -66,8 +66,8 @@ module exp_unit #(
     logic signed [T_W-1:0] t_biased;
     logic signed [5:0][C_W-1:0] a;
     logic signed [W_W-1:0] signif;
-    logic [W_W+SH_Y:0] signif_algn;
-    logic [W_W+SH_Y:0] sh1;
+    logic [W_W+SHIFT_Y:0] signif_algn;
+    logic [W_W+SHIFT_Y:0] sh1;
     logic [SHIFT_STAGES-1:0] rshift;
     logic [POLY_LATENCY-1:0][SHIFT_STAGES-1:0] rshift_d;
     logic [2:0] v_red;
@@ -96,7 +96,7 @@ module exp_unit #(
     assign frac = { ~t_biased[T_F-1], t_biased[T_F-2:0] };
 
     // position signif to the output's binary pointer
-    assign signif_algn = (W_W+SH_Y+1)'($unsigned(signif)) << (SH_Y+1);
+    assign signif_algn = (W_W+SHIFT_Y+1)'($unsigned(signif)) << (SHIFT_Y+1);
 
     assign rshift = rshift_d[POLY_LATENCY-1];
 
@@ -111,7 +111,7 @@ module exp_unit #(
         v_red[1] <= v_red[0];
 
         // clock 2
-        t_biased <= T_W'((t_prod + RND_BIAS) >>> SH_T); //
+        t_biased <= T_W'((t_prod + RND_BIAS) >>> SHIFT_T); //
         v_red[2] <= v_red[1];
 
         // clock 3-9, expo waits alongside poly_eval

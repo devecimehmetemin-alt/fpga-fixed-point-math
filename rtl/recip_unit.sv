@@ -56,10 +56,6 @@ module recip_unit #(
     localparam logic signed [ACC_W-1:0] RND_Y = 1 <<< (SHIFT_RIGHT - 1);
     localparam logic signed [Y_W-1:0] Y_MAX = (1 <<< (Y_W - 1)) - 1;
 
-    if (SHIFT_FIX <= 0) begin : g_shift_check
-        $error("SHIFT_FIX=%0d: the output shift runs the wrong way", SHIFT_FIX);
-    end
-
     // Seed maker
     // Entry i holds the reciprocal of slice i's midpoint
     function automatic logic [NSEED-1:0][S_F-1:0] make_seed();

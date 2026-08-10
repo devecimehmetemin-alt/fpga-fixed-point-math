@@ -27,7 +27,7 @@ class ExpFormats:
         self.c = Fmt(C_W, C_F, "half_up")       # coefficients
         self.w = Fmt(W_W, W_F, "half_up")       # poly_eval working format
         self.T_F, self.W_F, self.Y_W, self.Y_F = T_F, W_F, Y_W, Y_F
-        self.SH_Y = Y_F - W_F
+        self.SHIFT_Y = Y_F - W_F
         self.EXPO_W = T_W - T_F
 
     @property
@@ -88,7 +88,7 @@ def stages(x, fmt=DEFAULT, coeffs=None):
     # carries one spare bit; the right shift is the barrel shifter; the final
     # (+1) >> 1 rounds half up at a fixed position and drops the guard.
     rshift = -expo
-    signif_algn = signif.code << (fmt.SH_Y + 1)
+    signif_algn = signif.code << (fmt.SHIFT_Y + 1)
     sh1 = signif_algn >> rshift
     y = (sh1 + 1) >> 1
 

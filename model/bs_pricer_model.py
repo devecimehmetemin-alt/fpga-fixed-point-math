@@ -3,6 +3,43 @@ from scipy.stats import norm
 
 DEGENERATE = 1e-14
 
+# The declared operating envelope. Every study and every testbench draws from
+# here and nowhere else: the clamp bound below, the exponent range norm_cdf
+# hands exp_unit, and the fixed-point formats downstream are all derived from
+# these five intervals, so a literal copied elsewhere is a silent spec fork.
+#
+# The corner sigma=0.01 with T=1e-3 is deliberate, not an oversight. It drives
+# sigma*sqrt(T) to 3e-4 and |d| past 3000, which is what exercises the
+# saturating path through recip_unit. Removing it would hide the case the
+# hardware most needs to survive.
+RANGES = {
+    "S": (10.0, 300.0),  # spot
+    "K": (10.0, 300.0),  # strike
+    "r": (-0.02, 0.10),  # risk-free rate, negative rates included
+    "sigma": (0.01, 1.50),  # volatility, index through distressed
+    "T": (1e-3, 5.0),  # maturity in years, ~8 hours to 5 years
+}
+
+# |d1|, |d2| are clamped to this before the CDF. Not a range check -- N() has
+# already saturated by here, so the clamp is exact behaviour rather than an
+# approximation, and it delivers the sigma*sqrt(T) -> 0 degenerate case for
+# free: both CDFs go to 1 and the price falls out as S - K*exp(-r*T).
+#
+# 6.0 is chosen by measurement, not by N(-6). The error the clamp injects is
+# (S/K)*(1 - N(D_CLAMP)), and S/K reaches 30 over RANGES, so the price error is
+# ~30x the tail probability. Measured over the box: 2.8e-8 relative to K, an
+# eighth of an lsb at Q.22. At 5.657 -- which would land the exponent argument
+# exactly on exp_unit's characterised [-16, 0] -- it is 2.2e-7, a full lsb.
+D_CLAMP = 6.0
+
+
+ARGS = ("S", "K", "r", "sigma", "T")
+
+
+def sample(n, rng):
+    """n draws from RANGES, in the argument order the pricer takes."""
+    return tuple(rng.uniform(*RANGES[k], n) for k in ARGS)
+
 
 def d1_d2(S, K, r, sigma, T):
     v = sigma * np.sqrt(T)
