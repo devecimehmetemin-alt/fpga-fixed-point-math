@@ -16,6 +16,9 @@ endif
 ifeq ($(DUT),recip_unit)
 VERILOG_SOURCES += $(PWD)/../rtl/lzc_norm.sv
 endif
+ifeq ($(DUT),sqrt_unit)
+VERILOG_SOURCES += $(PWD)/../rtl/lzc_norm.sv
+endif
 
 EXTRA_ARGS += --timing -Wall
 
@@ -107,6 +110,27 @@ COMPILE_ARGS += -GLATENCY=$(LATENCY)
 export A_W A_F Y_W Y_F IDX_W S_F M_W R_W E_MIN E_MAX LATENCY
 # m's bits below m_q's slice are dead by construction. Put a lint_off pragma on
 # the declaration in the RTL to drop this.
+EXTRA_ARGS += -Wno-UNUSEDSIGNAL
+endif
+
+ifeq ($(DUT),sqrt_unit)
+A_W ?= 32
+A_F ?= 28
+Y_W ?= 24
+Y_F ?= 21
+IDX_W ?= 10
+S_F ?= 17
+M_W ?= 25
+R_W ?= 18
+E_MIN ?= 28
+E_MAX ?= 29
+LATENCY ?= 12
+COMPILE_ARGS += -GA_W=$(A_W) -GA_F=$(A_F) -GY_W=$(Y_W) -GY_F=$(Y_F) -GIDX_W=$(IDX_W)
+COMPILE_ARGS += -GS_F=$(S_F) -GM_W=$(M_W) -GR_W=$(R_W) -GE_MIN=$(E_MIN) -GE_MAX=$(E_MAX)
+COMPILE_ARGS += -GLATENCY=$(LATENCY)
+export A_W A_F Y_W Y_F IDX_W S_F M_W R_W E_MIN E_MAX LATENCY
+# m's bits below m_q's slice, and lzc_norm's zero flag, are dead by
+# construction. sqrt(0) falls out of the underflow branch on its own.
 EXTRA_ARGS += -Wno-UNUSEDSIGNAL
 endif
 
