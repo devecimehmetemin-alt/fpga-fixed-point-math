@@ -1,7 +1,7 @@
 import numpy as np
-from scipy.stats import norm
 
 import bs_pricer_model as bs
+import norm_cdf_model as nc
 from checks import Checks
 
 check = Checks()
@@ -21,12 +21,28 @@ check("put-call parity", res.max() < 1e-9, f"max residual {res.max():.3e}")
 # D_CLAMP is a spec commitment the hardware will rely on, so it gets a test and
 # not just a comment. The bound that matters is error relative to K, since the
 # datapath is K-normalised.
-d1, d2, _ = bs.d1_d2(S, K, r, sg, T)
-clamped = (S * norm.cdf(np.clip(d1, -bs.D_CLAMP, bs.D_CLAMP))
-           - K * np.exp(-r * T) * norm.cdf(np.clip(d2, -bs.D_CLAMP, bs.D_CLAMP)))
+#
+# The clamp comes from the model, not from a np.clip written out here: the
+# constant and the behaviour have to live in the same place or bs_pricer_top
+# gets measured against a spec that only the test knows.
+clamped = bs.call(S, K, r, sg, T, clamp=bs.D_CLAMP)
 clamp_err = np.abs(clamped - bs.call(S, K, r, sg, T)) / K
 check("clamp under 1/2 lsb at Q.22", clamp_err.max() < 0.5 * 2.0 ** -22,
       f"max {clamp_err.max():.3e}")
+
+# The same 6.0 is a default argument inside norm_cdf's format class, and that is
+# the copy the RTL is actually built from. Two declarations, one number.
+check("clamp agrees with norm_cdf", nc.NormCdfFormats().CLAMP == bs.D_CLAMP,
+      f"bs {bs.D_CLAMP} vs norm_cdf {nc.NormCdfFormats().CLAMP}")
+
+# Parity has to survive the clamp, because bs_pricer_top asserts it. It does
+# only because clipping is odd and N(x) + N(-x) = 1, so both legs saturate
+# together -- worth pinning rather than assuming.
+res_c = np.abs(bs.call(S, K, r, sg, T, clamp=bs.D_CLAMP)
+               - bs.put(S, K, r, sg, T, clamp=bs.D_CLAMP)
+               - (S - K * np.exp(-r * T)))
+check("put-call parity under the clamp", res_c.max() < 1e-9,
+      f"max residual {res_c.max():.3e}")
 
 scaled = np.abs(bs.call(S, K, r, sg, T) - K * bs.call_normalised(S / K, r, sg, T))
 check("K-homogeneity", scaled.max() < 1e-9, f"max dev {scaled.max():.3e}")
