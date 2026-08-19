@@ -1,7 +1,5 @@
 import numpy as np
 
-VARS = ("dW", "sh2", "rh", "mult1", "sum1", "mult2", "S", "mult2c", "Sc")
-
 
 def _rne(code, shift):
     # Round to nearest even. Unbiased, so it is what a serial recurrence wants,
@@ -72,14 +70,3 @@ class Fmt:
     def const(self, value):
         scaled = np.asarray(value, dtype=float) * (2.0 ** self.frac)
         return Fx(self._clip(np.rint(scaled).astype(np.int64)), self.frac)
-
-
-class Formats:
-    def __init__(self, widths, ranges):
-        if isinstance(widths, int):
-            widths = {v: widths for v in VARS}
-        for v in VARS:
-            setattr(self, v, Fmt.for_range(widths[v], ranges[v]))
-
-    def saturations(self):
-        return {v: getattr(self, v).saturations for v in VARS if getattr(self, v).saturations}

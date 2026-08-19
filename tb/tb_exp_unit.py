@@ -10,7 +10,6 @@ from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, FallingEdge, RisingEdge
 
 import exp_unit_model as exp
-from fixedpoint import Fmt
 
 X_W, X_F = int(os.environ["X_W"]), int(os.environ["X_F"])
 L_W, L_F = int(os.environ["L_W"]), int(os.environ["L_F"])
