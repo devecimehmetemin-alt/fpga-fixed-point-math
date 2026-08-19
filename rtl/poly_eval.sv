@@ -40,13 +40,13 @@ module poly_eval #(
     logic signed [X_W-1:0] x_r;
     logic signed [5:0][C_W-1:0] a_r;
 
-    logic signed [PX2_W-1:0] m_x2;
-    logic signed [PAX_W-1:0] m1, m3, m5;
+    (* use_dsp = "yes" *) logic signed [PX2_W-1:0] m_x2;
+    (* use_dsp = "yes" *) logic signed [PAX_W-1:0] m1, m3, m5;
     logic signed [C_W-1:0] ad0, ad2, ad4;
 
     logic signed [W_W-1:0] x2, t0, t1, t2;
 
-    logic signed [PW_W-1:0] m_w, m_p;
+    (* use_dsp = "yes" *) logic signed [PW_W-1:0] m_w, m_p;
     logic signed [W_W-1:0] w;
     logic signed [W_W-1:0] t1_d;
     logic signed [W_W-1:0] x2_d1, x2_d2;

@@ -128,7 +128,8 @@ module norm_cdf #(
     logic signed [T_W-1:0] t;
     logic signed [W_W-1:0] poly_q;
 
-    logic [SQ_W-1:0] ax_squared, half_sq;
+    (* use_dsp = "yes" *) logic [SQ_W-1:0] ax_squared;
+    logic [SQ_W-1:0] half_sq;
     logic signed [U_W-1:0] u;
     logic [PHI_W-1:0] phi;
 
