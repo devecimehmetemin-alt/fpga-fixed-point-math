@@ -29,6 +29,12 @@ VERILOG_SOURCES += $(PWD)/../rtl/recip_unit.sv $(PWD)/../rtl/sqrt_unit.sv
 VERILOG_SOURCES += $(PWD)/../rtl/ln_unit.sv $(PWD)/../rtl/exp_unit.sv
 VERILOG_SOURCES += $(PWD)/../rtl/norm_cdf.sv
 endif
+ifeq ($(DUT),pricer_selftest)
+VERILOG_SOURCES += $(PWD)/../rtl/lzc_norm.sv $(PWD)/../rtl/poly_eval.sv
+VERILOG_SOURCES += $(PWD)/../rtl/recip_unit.sv $(PWD)/../rtl/sqrt_unit.sv
+VERILOG_SOURCES += $(PWD)/../rtl/ln_unit.sv $(PWD)/../rtl/exp_unit.sv
+VERILOG_SOURCES += $(PWD)/../rtl/norm_cdf.sv $(PWD)/../rtl/bs_pricer_top.sv
+endif
 
 EXTRA_ARGS += --timing -Wall
 
