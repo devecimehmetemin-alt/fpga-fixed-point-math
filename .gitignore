@@ -22,5 +22,15 @@ vivado*.backup.log
 *.mem
 *.csv
 
+# reference vectors for the on-board self test
+!tb/vectors_in.mem
+!tb/vectors_exp.mem
+
 # Vivado project
-mixed_precision_mc/
+*.xpr
+*.cache/
+*.gen/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
